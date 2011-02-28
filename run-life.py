@@ -1,8 +1,7 @@
 #!/usr/bin/python
 import sys
-#from LifeManager import LifeManager
-from RandomLifeManager import RandomLifeManager
-from LifeApplication import LifeApplication
+from life.gui import LifeApplication
+from life.manager import RandomLifeManager
 
 # Create Life
 #born_if = (1, ); alive_if = (1, );  # Gnarl

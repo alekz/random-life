@@ -1,0 +1,2 @@
+from LifeManager import LifeManager
+from RandomLifeManager import RandomLifeManager
