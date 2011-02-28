@@ -1,1 +1,10 @@
 Conway's Game of Life, with colors and randomness
+
+This is a variation on a theme of Conway's Game of Life. In classic Life each cell has one of the two states: dead or alive. In this version each cell has two parameters: "energy" (the more "energetic" cell is, the brighter it looks) and "color" (hue).
+
+Some of this variation's rules:
+- New-born cells inherit average color of their "parents".
+- Parents of the same color produce more "energetic" (strong) cells than the differently-colored ones.
+- Each cell "mutates" with time: its color and energy are changed every frame to a tiny random amount; energy tends to increase on average.
+- When, by the Game rules, cell is supposed to die, its energy is significantly reduced instead, and if the cell was "energetic" enough, it can still be kept alive (but very weak).
+- Sometimes "energetic" enough "parents" give birth to a new cell even if it is not allowed by the Game rules (it means still patterns and oscillators aren't stable anymore).
