@@ -1,36 +1,58 @@
 #!/usr/bin/python
 import sys
+import argparse
 from life.gui import LifeApplication
 from life.manager import RandomLifeManager
 
-# Create Life
-#born_if = (1, ); alive_if = (1, );  # Gnarl
+presets = {
+    'gnarl': ((1,), (1,), 'Gnarl'),
+    'coral': ((3,), (4, 5, 6, 7, 8), 'Coral'),
+    'replicator': ((1, 3, 5, 7), (1, 3, 5, 7), 'Replicator'),
+    'seeds': ((2, ), (), 'Seeds'),
+    'serviettes': ((2, 3, 4), (), 'Serviettes'),
+    'nodeath': ((3, ), (0, 1, 2, 3, 4, 5, 6, 7, 8), 'Life without Death'),
+    'assimilation': ((3, 4, 5), (4, 5, 6, 7), 'Assimilation'),
+    'long': ((3, 4, 5), (5, ), 'Long Life'),
+    'diamoeba': ((3, 5, 6, 7, 8), (5, 6, 7, 8), 'Diamoeba'),
+    '2x2': ((3, 6), (1, 2, 5), '2x2'),
+    'stains': ((3, 6, 7, 8), (2, 3, 5, 6, 7, 8), 'Stains'),
+    'walled': ((4, 5, 6, 7, 8), (2, 3, 4, 5), 'Walled Cities'),
+    'coagulations': ((3, 7, 8), (2, 3, 5, 6, 7, 8), 'Coagulations'),
+    'move': ((3, 6, 8), (2, 4, 5), 'Move'),
+    'daynight': ((3, 6, 7, 8), (3, 4, 6, 7, 8), 'Day & Night'),
+    'amoeba': ((3, 5, 7), (1, 3, 5, 8), 'Amoeba'),
+    'pseudo': ((3, 5, 7), (2, 3, 8), 'Pseudo Life'),
+    '34': ((3, 4), (3, 4), '34 Life'),
+    'highlife': ((3, 6), (2, 3), 'HighLife'),
+    'maze': ((3, ), (1, 2, 3, 4, 5), 'Maze'),
+    'classic': ((3, ), (2, 3), 'Classic Life (default)'),
+}
 
-#born_if = (3, ); alive_if = (4, 5, 6, 7, 8);  # Coral
-#born_if = (1, 3, 5, 7); alive_if = (1, 3, 5, 7);  # Replicator
-#born_if = (2, ); alive_if = ();  # Seeds
-#born_if = (2, 3, 4); alive_if = ();  # Serviettes
-#born_if = (3, ); alive_if = (0, 1, 2, 3, 4, 5, 6, 7, 8);  # Life without Death
-#born_if = (3, 4, 5); alive_if = (4, 5, 6, 7);  # Assimilation
-#born_if = (3, 4, 5); alive_if = (5, );  # Long Life
-#born_if = (3, 5, 6, 7, 8); alive_if = (5, 6, 7, 8);  # Diamoeba
-#born_if = (3, 6); alive_if = (1, 2, 5);  # 2x2
-#born_if = (3, 6, 7, 8); alive_if = (2, 3, 5, 6, 7, 8);  # Stains
-#born_if = (4, 5, 6, 7, 8); alive_if = (2, 3, 4, 5);  # Walled Cities
+default_preset = 'classic'
 
-#born_if = (3, 7, 8); alive_if = (2, 3, 5, 6, 7, 8);  # Coagulations
-#born_if = (3, 6, 8); alive_if = (2, 4, 5);  # Move
-#born_if = (3, 6, 7, 8); alive_if = (3, 4, 6, 7, 8);  # Day & Night
-#born_if = (3, 5, 7); alive_if = (1, 3, 5, 8);  # Amoeba
-#born_if = (3, 5, 7); alive_if = (2, 3, 8);  # Pseudo Life
-#born_if = (3, 4); alive_if = (3, 4);  # 34 Life
-#born_if = (3, 6); alive_if = (2, 3);  # HighLife
-#born_if = (3, ); alive_if = (1, 2, 3, 4, 5);  # Maze
-born_if = (3, ); alive_if = (2, 3);  # Classic Life
+def parse_args():
 
-life = RandomLifeManager(100, 100, born_if, alive_if)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
-# Create Qt application and main widget
-app = LifeApplication(life)
+    presets_help = '\n'.join(sorted('  {0} - {1}'.format(name, title) for name, (_, _, title) in presets.items()))
+    parser.add_argument('-p', '--preset', dest='preset', metavar='PRESET',
+                        choices=presets.keys(), default=default_preset,
+                        help="use one of the predefined presets:\n" + presets_help)
 
-sys.exit(app.exec_())
+    parser.add_argument('--width', dest='width', type=int, default=100,
+                        help="width of the field (default = %(default)s)")
+
+    parser.add_argument('--height', dest='height', type=int, default=100,
+                        help="height of the field (default = %(default)s)")
+
+    return parser.parse_args()
+
+def run_life():
+    args = parse_args()
+    preset = presets[args.preset]
+    life = RandomLifeManager(args.width, args.height, born_if=preset[0], alive_if=preset[1])
+    app = LifeApplication(life)
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    run_life()
