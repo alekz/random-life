@@ -13,8 +13,8 @@ class RandomLifeManager(LifeManager):
         #cells[21][20] = self.createCell(0.5, 0.67)
         #cells[21][21] = self.createCell()
 
-    # Creates a cell (green cell with average energy by default
     def createCell(self, energy = 0.5, color = 0.3):
+        """Creates a new cell (green cell with average energy by default"""
         if energy <= 0:
             return None
         if energy > 1:
@@ -25,24 +25,24 @@ class RandomLifeManager(LifeManager):
             color -= 1
         return (energy, color)
 
-    # Returns cell energy
     def cellEnergy(self, x, y):
+        """Returns cell's energy"""
         cell = self.cell(x, y)
         if cell:
             return cell[0]
         else:
             return 0.0
 
-    # Returns cell color
     def cellColor(self, x, y):
+        """Returns cell's color"""
         cell = self.cell(x, y)
         if cell:
             return cell[1]
         else:
             return 0.0
 
-    # Returns cell color as a tuple (r, g, b)
     def color(self, x, y):
+        """Returns color of the cell as a tuple (red, green, blue)"""
 
         # Dead cell?
         if not self._cells[x][y]:
@@ -88,8 +88,8 @@ class RandomLifeManager(LifeManager):
 
         return color
 
-    # Next stage of life
     def next(self):
+        """Calculates the next stage of the life"""
 
         # New life
         cells = self._cells
@@ -195,8 +195,8 @@ class RandomLifeManager(LifeManager):
         if alive_cells_count == 0 and random.random() < 0.02:
             self.randomSeed(random.randint(10, 100), 20)
 
-    # Get new color vector
     def getColorVector(self, vector, cell):
+        """Get new color vector"""
 
         r1 = vector[0]
         a1 = vector[1] * 2.0 * math.pi

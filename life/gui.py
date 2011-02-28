@@ -4,49 +4,49 @@ from PyQt4 import QtCore, QtGui
 
 class LifeApplication(QtGui.QApplication):
 
-    # Initialize
-    def __init__(self, life):
+    def __init__(self, life, fps=0):
 
-        QtGui.QApplication.__init__(self, sys.argv)
+        super(LifeApplication, self).__init__(sys.argv)
 
         self.life = life
+        if fps > 0:
+            self.timer_delay = 1000 / fps
+            self.timer_delay = max(1, self.timer_delay)
+            self.timer_delay = min(1000, self.timer_delay)
+        else:
+            self.timer_delay = 1
 
         self.widget = Canvas(life)
         self.widget.show()
 
 
-    # Run application
     def exec_(self):
 
-        # Create timer
+        # Create and start timer
         self.timer = QtCore.QTimer()
         self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.updateLife)
         self.timer.setSingleShot(True)
-        self.timer.start(100)
+        self.timer.start(self.timer_delay)
 
-        # Run
-        return QtGui.QApplication.exec_()
+        # Run the application
+        return super(LifeApplication, self).exec_()
 
-    # Updates life
     def updateLife(self):
         self.life.next()
         self.widget.repaint()
-        self.timer.start(1)
+        self.timer.start(self.timer_delay)
 
-# Canvas class
 class Canvas(QtGui.QWidget):
 
-    # Initializes widget with Life
     def __init__(self, life):
 
         self.life = life
 
-        QtGui.QWidget.__init__(self)
+        super(Canvas, self).__init__()
 
         self.setFixedSize(800, 800)
         self.setWindowTitle('Life')
 
-    # Repaint widget
     def paintEvent(self, e):
         painter = Painter(self)
         painter.fillBackground()
@@ -54,11 +54,9 @@ class Canvas(QtGui.QWidget):
 
 class Painter(QtGui.QPainter):
 
-    # Fill background
     def fillBackground(self):
         self.fillRect(0, 0, self.device().width(), self.device().height(), QtGui.QColor('black'))
 
-    # Draws Life
     def drawLife(self, life):
 
         # Calculate coefficients
