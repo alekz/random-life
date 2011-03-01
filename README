@@ -4,7 +4,8 @@ This is a variation on a theme of Conway's Game of Life. In classic Life each ce
 
 Some of this variation's rules:
 - New-born cells inherit average color of their "parents".
-- Parents of the same color produce more "energetic" (strong) cells than the differently-colored ones.
+- Parents of the same color produce more "energetic" (strong) cells than the differently-colored ones, this allows to exist populations of different colors which almost don't mix together.
 - Each cell "mutates" with time: its color and energy are changed every frame to a tiny random amount; energy tends to increase on average.
+- If total cell population is too high, energy of all cells is slightly reduced every frame, this prevents the Life from overcrowding.
 - When, by the Game rules, cell is supposed to die, its energy is significantly reduced instead, and if the cell was "energetic" enough, it can still be kept alive (but very weak).
 - Sometimes "energetic" enough "parents" give birth to a new cell even if it is not allowed by the Game rules (it means still patterns and oscillators aren't stable anymore).

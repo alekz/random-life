@@ -11,7 +11,7 @@ class LifeManager(object):
         self._cells = []
 
         self._cells = self.getEmptyLife()
-        self.randomSeed(300, 20)
+        self.randomSeed()
 
     def createCell(self):
         return 1
@@ -22,7 +22,9 @@ class LifeManager(object):
             cells[x] = [None] * self._height
         return cells
 
-    def randomSeed(self, amount, square = None):
+    def randomSeed(self):
+        amount = 300
+        square = 20
         if square is None:
             width = self._width
             height = self._height

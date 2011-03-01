@@ -4,14 +4,26 @@ from LifeManager import LifeManager
 
 class RandomLifeManager(LifeManager):
 
-    # Random seed
-    #def randomSeed(self, amount, square = None):
-        #pass
-        #cells = self._cells
-        #cells[20][20] = self.createCell(0.5, 0.0)
-        #cells[20][21] = self.createCell(0.5, 0.33)
-        #cells[21][20] = self.createCell(0.5, 0.67)
-        #cells[21][21] = self.createCell()
+    def randomSeed(self):
+        for color in (0.0, 0.33, 0.67):
+            amount = 100
+            square = 15
+            if square is None:
+                width = self._width
+                height = self._height
+            else:
+                width = square
+                height = square
+            x0 = random.randint(0, self._width - width)
+            y0 = random.randint(0, self._height - height)
+            for _ in xrange(amount):
+                x = x0 + random.randint(0, width - 1)
+                y = y0 + random.randint(0, height - 1)
+                self._cells[x][y] = self.createCell(0.5, color)
+
+    def __init__(self, *args, **kwargs):
+        super(RandomLifeManager, self).__init__(*args, **kwargs)
+        self._cells_count = 0
 
     def createCell(self, energy = 0.5, color = 0.3):
         """Creates a new cell (green cell with average energy by default"""
@@ -54,7 +66,7 @@ class RandomLifeManager(LifeManager):
         #brightness = int(minBrightness + self.cellEnergy(x, y) * (maxBrightness - minBrightness))
         brightness = self.cellEnergy(x, y)
         # Normalize brightness
-        brightness = 0.1 + 0.8 * brightness
+        brightness = 0.2 + 0.7 * brightness
 
         # Cell hue
         hue = self.cellColor(x, y)
@@ -91,10 +103,23 @@ class RandomLifeManager(LifeManager):
     def next(self):
         """Calculates the next stage of the life"""
 
+        # Life settings
+        optimal_alive_cells_ratio = 0.1
+        max_color_mutation = 0.01
+        energy_hit_on_death = 0.75
+        newborn_energy = 0.5
+        max_energy_hit_for_parents_color_diff = 10.0
+        max_energy_hit_for_overcrowding = 0.25
+
         # New life
         cells = self._cells
         new_cells = self.getEmptyLife()
-        alive_cells_count = 0
+        cells_count = 0
+
+        # Data for energy compensation based on total number of cells
+        alive_cells_ratio = float(self._cells_count) / (self.width() * self.height())
+        # 1.0 for empty field; 0.0 for optimal ratio, <0.0 for too crowded field
+        alive_cells_max_energy_shift = 1.0 - alive_cells_ratio / optimal_alive_cells_ratio
 
         # Calculate state of all cells in the new life
         for x in xrange(self._width):
@@ -121,7 +146,8 @@ class RandomLifeManager(LifeManager):
                             neighbors_energy += self.cellEnergy(x + dx, y + dy)
                             neighbors_color = self.getColorVector(neighbors_color, cells[x + dx][y + dy])
 
-                # Other neighbors stats
+                neighbors_color_power, neighbors_color_hue = neighbors_color
+
                 if neighbors_count == 0:
                     neighbors_average_energy = 0
                 else:
@@ -133,18 +159,24 @@ class RandomLifeManager(LifeManager):
                     # Current energy
                     energy = self.cellEnergy(x, y)
 
-                    # Random energy change
+                    # Random energy change based on the number of neighbors
                     # Energy increases in empty environments and decreases in crowded
                     neighbors_energy_shift = (5 - neighbors_count) / 100.0 # -0.03..0.05
                     energy += random.uniform(neighbors_energy_shift - 0.02, neighbors_energy_shift + 0.02)
 
+                    # Random energy change based on the total number of alive cells
+                    if alive_cells_max_energy_shift < 0:
+                        energy += random.uniform(max_energy_hit_for_overcrowding * alive_cells_max_energy_shift, 0)
+
+                    #total_energy_shift =
+
                     # Kill cell by decreasing its energy
                     if neighbors_count not in self._alive_if:
-                        energy -= 0.75
+                        energy -= energy_hit_on_death
 
                     # Color mutation
                     color = self.cellColor(x, y)
-                    color += random.uniform(-0.05, 0.05)
+                    color += random.uniform(-max_color_mutation, max_color_mutation)
 
                     # New cell (dead or alive)
                     new_cells[x][y] = self.createCell(energy, color)
@@ -154,21 +186,21 @@ class RandomLifeManager(LifeManager):
                 else:
 
                     # Color of the new cell
-                    color = neighbors_color[1]
+                    color = neighbors_color_hue
 
                     if neighbors_count in self._born_if:
 
                         # Born new cell
-                        energy = 0.5
+                        energy = newborn_energy
 
                         # Add up to 0.1 energy if parents are energetic
                         energy += neighbors_average_energy / 10
 
                         # Subtract energy if parents are of too different colors
                         # Newborn children might be even dead
-                        #color_power = neighbors_color[0] / neighbors_count
-                        #if color_power < neighbors_average_energy:
-                        #    energy -= 5.0 * (neighbors_average_energy - color_power)  # -0.0..-0.9
+                        # 0.0 - same colors, 1.0 - opposite colors
+                        color_diff = 1 - neighbors_color_power / neighbors_energy
+                        energy -= max_energy_hit_for_parents_color_diff * color_diff
 
                     elif (neighbors_average_energy > 0.9) and (random.random() > neighbors_count / 10):
 
@@ -184,16 +216,18 @@ class RandomLifeManager(LifeManager):
                     # Store new cell
                     new_cells[x][y] = self.createCell(energy, color)
 
-                    # Count alive cells
-                    if new_cells[x][y]:
-                        alive_cells_count += 1
+                # Count alive cells
+                if new_cells[x][y]:
+                    cells_count += 1
 
         # Replace old life with the new one
         self._cells = new_cells
 
         # Add random cells if there is no life
-        if alive_cells_count == 0 and random.random() < 0.02:
-            self.randomSeed(random.randint(10, 100), 20)
+        if cells_count == 0 and random.random() < 0.02:
+            self.randomSeed()
+
+        self._cells_count = cells_count
 
     def getColorVector(self, vector, cell):
         """Get new color vector"""
